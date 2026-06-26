@@ -1,0 +1,505 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.shell { padding: 1.5rem 0; }
+.top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.top-bar h1 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.badge-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.cat-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; cursor: pointer; border: 0.5px solid transparent; transition: all 0.15s; font-weight: 500; }
+.cat-badge.active { border-color: currentColor; }
+.cat-all { background: #2C2C2A; color: #F1EFE8; }
+.cat-quality { background: #E1F5EE; color: #085041; }
+.cat-quality.active { border-color: #0F6E56; }
+.cat-safety { background: #FAECE7; color: #4A1B0C; }
+.cat-safety.active { border-color: #993C1D; }
+.cat-faithfulness { background: #E6F1FB; color: #042C53; }
+.cat-faithfulness.active { border-color: #185FA5; }
+.cat-efficiency { background: #FAEEDA; color: #412402; }
+.cat-efficiency.active { border-color: #854F0B; }
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.metric-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem; cursor: pointer; transition: border-color 0.15s, transform 0.1s; }
+.metric-card:hover { border-color: var(--color-border-secondary); transform: translateY(-1px); }
+.metric-card.selected { border-width: 1.5px; }
+.metric-card.sel-quality { border-color: #1D9E75; }
+.metric-card.sel-safety { border-color: #D85A30; }
+.metric-card.sel-faithfulness { border-color: #378ADD; }
+.metric-card.sel-efficiency { border-color: #BA7517; }
+.card-icon { font-size: 20px; margin-bottom: 8px; }
+.card-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+.card-tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; display: inline-block; margin-bottom: 6px; }
+.tag-quality { background: #E1F5EE; color: #085041; }
+.tag-safety { background: #FAECE7; color: #4A1B0C; }
+.tag-faithfulness { background: #E6F1FB; color: #042C53; }
+.tag-efficiency { background: #FAEEDA; color: #412402; }
+.card-blurb { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; }
+.detail-panel { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+.detail-header { padding: 1.25rem; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: flex-start; gap: 12px; }
+.detail-icon { font-size: 28px; margin-top: 2px; }
+.detail-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.detail-subtitle { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+.detail-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.detail-col { padding: 1.25rem; }
+.detail-col:first-child { border-right: 0.5px solid var(--color-border-tertiary); }
+.section-label { font-size: 10px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.formula-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; font-family: var(--font-mono); font-size: 12px; color: var(--color-text-primary); line-height: 1.6; margin-bottom: 12px; white-space: pre-wrap; }
+.when-list { list-style: none; }
+.when-list li { font-size: 12px; color: var(--color-text-secondary); padding: 4px 0; padding-left: 16px; position: relative; line-height: 1.5; }
+.when-list li::before { content: "→"; position: absolute; left: 0; color: var(--color-text-tertiary); }
+.viz-area { border-top: 0.5px solid var(--color-border-tertiary); padding: 1.25rem; }
+.viz-label { font-size: 10px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+.score-demo { display: flex; flex-direction: column; gap: 8px; }
+.score-row { display: flex; align-items: center; gap: 10px; }
+.score-name { font-size: 11px; color: var(--color-text-secondary); width: 90px; flex-shrink: 0; }
+.score-bar-wrap { flex: 1; height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; }
+.score-bar { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.score-val { font-size: 11px; font-weight: 500; color: var(--color-text-primary); width: 32px; text-align: right; }
+.heat-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+.heat-cell { height: 18px; border-radius: 2px; }
+.radar-wrap { position: relative; width: 100%; }
+.why-text { font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; }
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.pc-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 8px; }
+.pc-title { font-size: 10px; font-weight: 500; margin-bottom: 4px; }
+.pc-title.pro { color: #0F6E56; }
+.pc-title.con { color: #993C1D; }
+.pc-item { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; }
+.hidden { display: none !important; }
+.select-hint { text-align: center; padding: 3rem; color: var(--color-text-tertiary); font-size: 13px; }
+.select-hint i { font-size: 28px; display: block; margin-bottom: 8px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.use-chip { font-size: 10px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 10px; padding: 3px 9px; color: var(--color-text-secondary); }
+.compare-btn { font-size: 11px; padding: 4px 12px; border-radius: 20px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); cursor: pointer; }
+.compare-btn:hover { background: var(--color-background-tertiary); }
+</style>
+
+<div class="shell">
+<h2 class="sr-only">Interactive LLM evaluation metrics explorer — browse, filter, and visualize key metrics used to evaluate large language models.</h2>
+
+<div class="top-bar">
+  <span style="font-size:13px;color:var(--color-text-secondary);">Filter:</span>
+  <div class="badge-group">
+    <span class="cat-badge cat-all active" onclick="filterCat('all', this)">All metrics</span>
+    <span class="cat-badge cat-quality" onclick="filterCat('quality', this)">Quality</span>
+    <span class="cat-badge cat-safety" onclick="filterCat('safety', this)">Safety</span>
+    <span class="cat-badge cat-faithfulness" onclick="filterCat('faithfulness', this)">Faithfulness</span>
+    <span class="cat-badge cat-efficiency" onclick="filterCat('efficiency', this)">Efficiency</span>
+  </div>
+</div>
+
+<div class="metric-grid" id="metricGrid"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="select-hint"><i class="ti ti-chart-radar" aria-hidden="true"></i>Select a metric above to explore it</div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const metrics = [
+  {
+    id: 'bleu',
+    name: 'BLEU Score',
+    cat: 'quality',
+    icon: 'ti-text-scan-2',
+    blurb: 'N-gram overlap between output and reference text',
+    why: 'Measures how much the generated text overlaps with human-written references using n-gram precision. Originally designed for machine translation, widely adopted across NLP tasks.',
+    formula: 'BLEU = BP × exp(Σ wₙ × log pₙ)\n\nwhere:\n  pₙ = n-gram precision (1 to 4)\n  BP  = brevity penalty\n  wₙ  = uniform weight (0.25)',
+    when: ['Evaluating machine translation quality', 'Summarization benchmarking', 'Comparing outputs to fixed reference answers', 'Regression testing over model versions'],
+    chips: ['MT-Bench', 'WMT', 'CNN/DM'],
+    pros: 'Fast, language-agnostic, reference-based',
+    cons: 'Ignores semantics, fails on paraphrase',
+    viz: 'ngram',
+    scores: [
+      { name: 'GPT-4o', val: 0.42 },
+      { name: 'Claude 3.5', val: 0.39 },
+      { name: 'Llama 3', val: 0.31 },
+      { name: 'Gemini 1.5', val: 0.37 }
+    ]
+  },
+  {
+    id: 'rouge',
+    name: 'ROUGE',
+    cat: 'quality',
+    icon: 'ti-layers-intersect',
+    blurb: 'Recall-oriented overlap for summarization',
+    why: 'Focuses on recall — how much of the reference is captured in the generated output. The ROUGE-L variant uses longest common subsequence, making it sequence-aware.',
+    formula: 'ROUGE-N:\n  Recall = matched n-grams / ref n-grams\n  Precision = matched / gen n-grams\n  F1 = 2 × (P × R) / (P + R)\n\nROUGE-L uses LCS instead of n-grams',
+    when: ['Summarization evaluation', 'Text compression quality', 'News article condensation', 'Medical report summarization'],
+    chips: ['CNN/DailyMail', 'XSum', 'BillSum'],
+    pros: 'Multiple variants, well-established baseline',
+    cons: 'Lexical only, misses semantic similarity',
+    viz: 'bars',
+    scores: [
+      { name: 'ROUGE-1', val: 0.48 },
+      { name: 'ROUGE-2', val: 0.22 },
+      { name: 'ROUGE-L', val: 0.44 }
+    ]
+  },
+  {
+    id: 'bertscore',
+    name: 'BERTScore',
+    cat: 'quality',
+    icon: 'ti-brain',
+    blurb: 'Semantic similarity using contextual embeddings',
+    why: 'Uses BERT contextual embeddings to compute token-level cosine similarity between candidate and reference, capturing semantic meaning that lexical methods miss.',
+    formula: 'For each token in candidate (ĉ),\nfind most similar token in reference (r):\n\nR = (1/|r|) Σ max cosine(cᵢ, rⱼ)\nP = (1/|ĉ|) Σ max cosine(rⱼ, cᵢ)\nF = 2PR/(P+R)',
+    when: ['Paraphrase quality evaluation', 'Creative writing assessment', 'When exact wording varies but meaning matters', 'Multi-lingual evaluation'],
+    chips: ['STS-Bench', 'ParaBank', 'Flores'],
+    pros: 'Captures semantics, robust to rephrasing',
+    cons: 'Slower, needs GPU, black-box similarity',
+    viz: 'heatmap',
+    heatVals: [0.9,0.3,0.1,0.2,0.1,0.85,0.2,0.1,0.2,0.1,
+               0.2,0.88,0.3,0.1,0.1,0.1,0.78,0.2,0.1,0.1,
+               0.1,0.2,0.82,0.3,0.1,0.2,0.1,0.85,0.1,0.1,
+               0.1,0.1,0.2,0.91,0.2,0.1,0.1,0.2,0.79,0.1,
+               0.2,0.1,0.1,0.2,0.88,0.1,0.1,0.1,0.2,0.83]
+  },
+  {
+    id: 'perplexity',
+    name: 'Perplexity',
+    cat: 'quality',
+    icon: 'ti-activity',
+    blurb: 'How surprised is the model by real text?',
+    why: 'Measures how well a language model predicts a test set. Lower perplexity = model assigns higher probability to real text = better language modelling. Intrinsic metric.',
+    formula: 'PPL(W) = exp(-1/N × Σ log P(wᵢ|w<ᵢ))\n\nwhere:\n  N = number of tokens\n  P(wᵢ|w<ᵢ) = token prob given context\n\nEquivalent to geometric mean of\ninverse token probabilities',
+    when: ['Comparing base model language quality', 'Choosing between model checkpoints', 'Detecting domain shift', 'Evaluating fine-tuning effect on fluency'],
+    chips: ['WikiText-103', 'Penn Treebank', 'C4'],
+    pros: 'Fully automatic, intrinsic, fast',
+    cons: 'Not task-aligned, lower ≠ better answers',
+    viz: 'curve',
+    scores: [
+      { name: 'GPT-4', val: 0.15 },
+      { name: 'Claude 3', val: 0.18 },
+      { name: 'Llama-3 8B', val: 0.52 },
+      { name: 'Mistral 7B', val: 0.48 }
+    ]
+  },
+  {
+    id: 'toxicity',
+    name: 'Toxicity Score',
+    cat: 'safety',
+    icon: 'ti-shield-x',
+    blurb: 'Probability of harmful/offensive content',
+    why: 'Uses classifiers (e.g. Perspective API) to score text on multiple harm axes: identity attack, insult, threat, sexually explicit content, and general toxicity.',
+    formula: 'Toxicity Rate = toxic_outputs / total_outputs\n\nPerspective API returns P(toxic)\nper comment, threshold typically 0.5.\n\nAggregated axes:\n  identity_attack, insult,\n  threat, sexual_explicit',
+    when: ['Red-teaming and safety benchmarks', 'Deploying in consumer-facing products', 'Policy compliance verification', 'Comparing alignment of fine-tuned models'],
+    chips: ['RealToxicityPrompts', 'ToxiGen', 'WinoBias'],
+    pros: 'Multi-dimensional, industry standard',
+    cons: 'False positives on legitimate content',
+    viz: 'bars',
+    scores: [
+      { name: 'Unprompted', val: 0.04 },
+      { name: 'Prompted (mild)', val: 0.12 },
+      { name: 'Adversarial', val: 0.38 }
+    ]
+  },
+  {
+    id: 'hallucination',
+    name: 'Hallucination Rate',
+    cat: 'faithfulness',
+    icon: 'ti-ghost',
+    blurb: 'How often does the model fabricate facts?',
+    why: 'Measures the fraction of generated claims that are factually incorrect or unverifiable, either via NLI models, knowledge-base grounding, or human annotation.',
+    formula: 'Hallucination Rate =\n  fabricated_claims / total_claims\n\nFactual consistency (NLI-based):\n  FC = P(entail | premise=docs,\n           hypothesis=claim)\n\nTypes: intrinsic (contradicts source)\n       extrinsic (unverifiable)',
+    when: ['RAG pipeline evaluation', 'Medical/legal answer verification', 'Knowledge-intensive QA', 'Citation accuracy measurement'],
+    chips: ['HaluEval', 'FactScore', 'TruthfulQA'],
+    pros: 'Critical for high-stakes use cases',
+    cons: 'Hard to automate, needs ground truth',
+    viz: 'radar',
+    radarData: [0.85, 0.72, 0.91, 0.78, 0.65, 0.88]
+  },
+  {
+    id: 'faithfulness',
+    name: 'Faithfulness (RAG)',
+    cat: 'faithfulness',
+    icon: 'ti-file-check',
+    blurb: 'Are answers grounded in retrieved context?',
+    why: 'Specifically for RAG systems — checks whether every claim in the generated answer can be attributed to (entailed by) the retrieved documents, using NLI or LLM-as-judge.',
+    formula: 'Faithfulness =\n  supported_sentences / total_sentences\n\nFor each sentence s in answer:\n  verdict = NLI(context, s)\n  supported if verdict = ENTAIL\n\nContext Relevance:\n  relevant_chunks / retrieved_chunks',
+    when: ['RAG system evaluation (RAGAS framework)', 'Enterprise knowledge-base QA', 'Legal document question answering', 'Medical record summarization'],
+    chips: ['RAGAS', 'ARES', 'RECALL'],
+    pros: 'Directly measures grounding quality',
+    cons: 'Requires retrieved docs as input',
+    viz: 'bars',
+    scores: [
+      { name: 'Faithfulness', val: 0.83 },
+      { name: 'Answer Relevance', val: 0.76 },
+      { name: 'Context Recall', val: 0.69 },
+      { name: 'Context Precision', val: 0.71 }
+    ]
+  },
+  {
+    id: 'llm_judge',
+    name: 'LLM-as-Judge',
+    cat: 'quality',
+    icon: 'ti-scale',
+    blurb: 'Using a stronger LLM to evaluate outputs',
+    why: 'Leverages a frontier model (GPT-4, Claude) to score outputs on multiple dimensions — helpfulness, correctness, harmlessness — via structured prompts or pairwise comparison.',
+    formula: 'Pointwise: Score ∈ {1..10} per dimension\n\nPairwise (win rate):\n  Win Rate = wins / (wins + losses + ties)\n\nDimensions (G-Eval style):\n  coherence, consistency,\n  fluency, relevance',
+    when: ['Instruction-following benchmarks', 'Open-ended generation quality', 'Aligning with human preferences', 'Arena-style model comparison (Chatbot Arena)'],
+    chips: ['MT-Bench', 'AlpacaEval', 'Chatbot Arena'],
+    pros: 'Flexible, human-like, multi-dimensional',
+    cons: 'Expensive, judge model bias possible',
+    viz: 'radar',
+    radarData: [0.88, 0.82, 0.79, 0.91, 0.85, 0.77]
+  },
+  {
+    id: 'ttft',
+    name: 'TTFT / Latency',
+    cat: 'efficiency',
+    icon: 'ti-bolt',
+    blurb: 'Time to first token and end-to-end speed',
+    why: 'Time To First Token (TTFT) measures user-perceived responsiveness. Tokens Per Second (TPS) measures throughput. Critical for production deployment and user experience.',
+    formula: 'TTFT = t_first_token - t_request_sent\n\nThroughput (TPS):\n  TPS = total_tokens / total_time\n\nEnd-to-end latency:\n  Latency = TTFT + (output_tokens / TPS)\n\nP99 latency often used in SLAs',
+    when: ['Comparing API providers on speed', 'Sizing inference infrastructure', 'Streaming UX optimization', 'Cost-performance tradeoff analysis'],
+    chips: ['Artificial Analysis', 'OpenRouter', 'Baseten'],
+    pros: 'Directly impacts UX and cost',
+    cons: 'Highly hardware-dependent',
+    viz: 'bars',
+    scores: [
+      { name: 'GPT-4o', val: 0.78 },
+      { name: 'Claude Sonnet', val: 0.85 },
+      { name: 'Llama 3 (local)', val: 0.45 },
+      { name: 'Gemini Flash', val: 0.91 }
+    ]
+  },
+  {
+    id: 'pass_k',
+    name: 'Pass@k',
+    cat: 'quality',
+    icon: 'ti-code',
+    blurb: 'Code generation: k attempts, at least 1 passes',
+    why: 'Estimates the probability that at least one of k generated code samples passes all unit tests. Used in HumanEval, MBPP. Avoids bias from greedy decoding.',
+    formula: 'pass@k = 1 - C(n-c, k) / C(n, k)\n\nwhere:\n  n = total samples generated\n  c = samples that pass tests\n  k = samples shown to user\n\nE.g. n=200, c=80, k=1 → pass@1 ≈ 40%',
+    when: ['Code generation benchmarks (HumanEval)', 'Copilot-style tool evaluation', 'Algorithm synthesis quality', 'Competitive programming tasks'],
+    chips: ['HumanEval', 'MBPP', 'LiveCodeBench'],
+    pros: 'Unbiased, execution-grounded',
+    cons: 'Needs unit tests, compute-heavy',
+    viz: 'ngram',
+    scores: [
+      { name: 'pass@1', val: 0.67 },
+      { name: 'pass@5', val: 0.84 },
+      { name: 'pass@10', val: 0.91 }
+    ]
+  },
+  {
+    id: 'calibration',
+    name: 'Calibration / ECE',
+    cat: 'faithfulness',
+    icon: 'ti-adjustments-horizontal',
+    blurb: 'Do confidence scores match actual accuracy?',
+    why: 'A well-calibrated model assigns 80% confidence only when it is correct 80% of the time. ECE (Expected Calibration Error) measures the gap between confidence and accuracy.',
+    formula: 'ECE = Σ (|Bₘ|/n) × |acc(Bₘ) - conf(Bₘ)|\n\nwhere:\n  Bₘ = samples in confidence bin m\n  acc = fraction correct in bin\n  conf = mean confidence in bin\n\nPerfect calibration: ECE = 0',
+    when: ['High-stakes decision support', 'Medical/legal AI applications', 'Uncertainty quantification research', 'Trust and reliability evaluation'],
+    chips: ['MMLU calibration', 'TruthfulQA', 'LMSYS Arena'],
+    pros: 'Measures reliability of uncertainty',
+    cons: 'Requires probability access, complex',
+    viz: 'curve',
+    scores: [
+      { name: 'GPT-4', val: 0.88 },
+      { name: 'Claude 3', val: 0.84 },
+      { name: 'Fine-tuned 7B', val: 0.61 },
+      { name: 'Base 7B', val: 0.52 }
+    ]
+  },
+  {
+    id: 'cost',
+    name: 'Cost per Task',
+    cat: 'efficiency',
+    icon: 'ti-coin',
+    blurb: 'Economic efficiency of model performance',
+    why: 'Normalizes quality scores by API cost (per 1M tokens). Enables comparison across model tiers on a performance-per-dollar basis — essential for production budget planning.',
+    formula: 'Cost per Task =\n  (input_tokens × price_in +\n   output_tokens × price_out)\n  / 1_000_000\n\nQuality-Adjusted Score:\n  QAS = benchmark_score / cost_per_task\n\nHigher QAS = better value',
+    when: ['Choosing a model for production', 'High-volume API applications', 'Comparing fine-tuned vs frontier models', 'Startup/enterprise budget planning'],
+    chips: ['Artificial Analysis', 'vellum.ai', 'OpenMeter'],
+    pros: 'Business-critical, real-world signal',
+    cons: 'Pricing changes, hard to standardize',
+    viz: 'bars',
+    scores: [
+      { name: 'GPT-4o', val: 0.61 },
+      { name: 'Claude Haiku', val: 0.92 },
+      { name: 'Gemini Flash', val: 0.88 },
+      { name: 'GPT-4o-mini', val: 0.85 }
+    ]
+  }
+];
+
+const catColors = {
+  quality: { bar: '#1D9E75', tag: 'tag-quality', sel: 'sel-quality' },
+  safety: { bar: '#D85A30', tag: 'tag-safety', sel: 'sel-safety' },
+  faithfulness: { bar: '#378ADD', tag: 'tag-faithfulness', sel: 'sel-faithfulness' },
+  efficiency: { bar: '#BA7517', tag: 'tag-efficiency', sel: 'sel-efficiency' }
+};
+
+let activeFilter = 'all';
+let activeMetric = null;
+let chartInstance = null;
+
+function renderGrid() {
+  const grid = document.getElementById('metricGrid');
+  grid.innerHTML = '';
+  metrics.filter(m => activeFilter === 'all' || m.cat === activeFilter).forEach(m => {
+    const c = catColors[m.cat];
+    const div = document.createElement('div');
+    div.className = 'metric-card' + (activeMetric === m.id ? ` selected ${c.sel}` : '');
+    div.onclick = () => selectMetric(m.id);
+    div.innerHTML = `
+      <i class="ti ${m.icon} card-icon" aria-hidden="true"></i>
+      <div class="card-name">${m.name}</div>
+      <span class="card-tag ${c.tag}">${m.cat}</span>
+      <div class="card-blurb">${m.blurb}</div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function filterCat(cat, el) {
+  activeFilter = cat;
+  document.querySelectorAll('.cat-badge').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  activeMetric = null;
+  renderGrid();
+  renderDetail(null);
+}
+
+function selectMetric(id) {
+  activeMetric = id;
+  renderGrid();
+  const m = metrics.find(x => x.id === id);
+  renderDetail(m);
+}
+
+function renderDetail(m) {
+  const panel = document.getElementById('detailPanel');
+  if (!m) {
+    panel.innerHTML = '<div class="select-hint"><i class="ti ti-chart-radar" aria-hidden="true"></i>Select a metric above to explore it</div>';
+    return;
+  }
+  const c = catColors[m.cat];
+  panel.innerHTML = `
+    <div class="detail-header">
+      <i class="ti ${m.icon} detail-icon" aria-hidden="true" style="color:${c.bar}"></i>
+      <div>
+        <div class="detail-title">${m.name}</div>
+        <div class="detail-subtitle">${m.blurb}</div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-col">
+        <div class="section-label">Why use this</div>
+        <div class="why-text">${m.why}</div>
+        <div class="pros-cons">
+          <div class="pc-box">
+            <div class="pc-title pro"><i class="ti ti-circle-check" aria-hidden="true"></i> Strengths</div>
+            <div class="pc-item">${m.pros}</div>
+          </div>
+          <div class="pc-box">
+            <div class="pc-title con"><i class="ti ti-circle-x" aria-hidden="true"></i> Limits</div>
+            <div class="pc-item">${m.cons}</div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="section-label">Common benchmarks</div>
+          <div class="chip-row">${m.chips.map(c=>`<span class="use-chip">${c}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div class="detail-col">
+        <div class="section-label">Formula / intuition</div>
+        <div class="formula-box">${m.formula}</div>
+        <div class="section-label">When to use</div>
+        <ul class="when-list">
+          ${m.when.map(w=>`<li>${w}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+    <div class="viz-area">
+      <div class="viz-label">Live visualization</div>
+      ${buildViz(m, c)}
+    </div>
+  `;
+  runVizScript(m, c);
+}
+
+function buildViz(m, c) {
+  if (m.viz === 'bars' || m.viz === 'ngram') {
+    const items = m.scores || [];
+    const html = items.map(s => `
+      <div class="score-row">
+        <span class="score-name">${s.name}</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar" style="width:${(s.val*100).toFixed(0)}%;background:${c.bar}"></div>
+        </div>
+        <span class="score-val">${(s.val*100).toFixed(0)}%</span>
+      </div>`).join('');
+    return `<div class="score-demo">${html}</div>`;
+  }
+  if (m.viz === 'heatmap') {
+    const v = m.heatVals || [];
+    const cells = v.map(val => {
+      const a = Math.round(val * 100);
+      const col = val > 0.7 ? '#1D9E75' : val > 0.4 ? '#EF9F27' : '#E0DED6';
+      return `<div class="heat-cell" style="background:${col};opacity:${0.3+val*0.7}" title="sim=${val.toFixed(2)}"></div>`;
+    }).join('');
+    return `<div style="margin-bottom:6px;font-size:11px;color:var(--color-text-secondary)">Token similarity matrix (candidate × reference) — green = high semantic match</div><div class="heat-grid">${cells}</div>`;
+  }
+  if (m.viz === 'radar' || m.viz === 'curve') {
+    return `<div style="position:relative;width:100%;height:200px"><canvas id="vizChart" role="img" aria-label="Visualization for ${m.name}">Chart data for ${m.name}</canvas></div>`;
+  }
+  return '';
+}
+
+function runVizScript(m, c) {
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  const canvas = document.getElementById('vizChart');
+  if (!canvas || !window.Chart) return;
+  if (m.viz === 'radar') {
+    const labels = ['Accuracy', 'Coherence', 'Faithfulness', 'Fluency', 'Safety', 'Relevance'];
+    chartInstance = new Chart(canvas, {
+      type: 'radar',
+      data: {
+        labels,
+        datasets: [{
+          label: m.name,
+          data: (m.radarData || [0.8,0.8,0.8,0.8,0.8,0.8]).map(x => x*100),
+          borderColor: c.bar,
+          backgroundColor: c.bar + '22',
+          borderWidth: 1.5,
+          pointBackgroundColor: c.bar,
+          pointRadius: 3
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, font: { size: 10 } }, pointLabels: { font: { size: 10 } } } }
+      }
+    });
+  } else if (m.viz === 'curve') {
+    const scores = m.scores || [];
+    chartInstance = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: scores.map(s => s.name),
+        datasets: [{
+          label: 'Score',
+          data: scores.map(s => (s.val*100).toFixed(1)),
+          backgroundColor: c.bar + 'cc',
+          borderColor: c.bar,
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 0, max: 100, ticks: { font: { size: 10 } } },
+          x: { ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+}
+
+renderGrid();
+</script>
